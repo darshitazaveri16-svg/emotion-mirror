@@ -1,0 +1,764 @@
+.live-room-page {
+  min-height: 100vh;
+  background: #080a12;
+  color: #f5f5f7;
+  font-family: "DM Sans", sans-serif;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.live-room-header {
+  height: 72px;
+  padding: 0 4%;
+
+  display: flex;
+  align-items: center;
+
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+
+  background: rgba(8,10,18,0.9);
+  backdrop-filter: blur(20px);
+}
+
+.room-logo {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.room-logo span:first-child {
+  margin-right: 8px;
+}
+
+.room-logo span:last-child {
+  color: #a78bfa;
+}
+
+.room-status {
+  margin-left: 35px;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  background: rgba(34,211,238,0.07);
+
+  color: #67e8f9;
+
+  font-size: 9px;
+  letter-spacing: 1.3px;
+}
+
+.room-status span {
+  display: inline-block;
+
+  width: 5px;
+  height: 5px;
+
+  margin-right: 6px;
+
+  border-radius: 50%;
+
+  background: #67e8f9;
+  box-shadow: 0 0 10px #67e8f9;
+}
+
+.room-code-small {
+  margin-left: auto;
+
+  color: #555865;
+
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.room-code-small strong {
+  color: #9295a2;
+  margin-left: 5px;
+}
+
+.leave-room-button {
+  margin-left: 22px;
+
+  padding: 8px 14px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #777a87;
+
+  font-size: 10px;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.leave-room-button:hover {
+  color: #f87171;
+  border-color: rgba(248,113,113,0.25);
+}
+
+
+/* =========================
+   MAIN
+========================= */
+
+.live-room-main {
+  min-height: calc(100vh - 72px);
+
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr) 390px;
+
+  max-width: 1500px;
+
+  margin: auto;
+}
+
+
+/* =========================
+   CONVERSATION
+========================= */
+
+.conversation-section {
+  padding: 42px 5% 35px;
+
+  border-right: 1px solid rgba(255,255,255,0.06);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.conversation-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  padding-bottom: 25px;
+
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.section-label {
+  color: #666977;
+
+  font-size: 8px;
+
+  letter-spacing: 1.8px;
+}
+
+.conversation-heading h1 {
+  margin-top: 6px;
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 29px;
+
+  letter-spacing: -1px;
+}
+
+.connected-person {
+  color: #626572;
+
+  font-size: 10px;
+}
+
+.connected-person span {
+  display: inline-block;
+
+  width: 6px;
+  height: 6px;
+
+  margin-right: 6px;
+
+  border-radius: 50%;
+
+  background: #4ade80;
+}
+
+
+/* =========================
+   MESSAGES
+========================= */
+
+.messages-container {
+  flex: 1;
+
+  padding: 30px 5px;
+
+  overflow-y: auto;
+}
+
+.message-row {
+  display: flex;
+
+  flex-direction: column;
+
+  margin-bottom: 23px;
+
+  max-width: 70%;
+}
+
+.message-row.you {
+  margin-left: auto;
+
+  align-items: flex-end;
+}
+
+.message-row.them {
+  align-items: flex-start;
+}
+
+.message-info {
+  margin-bottom: 6px;
+
+  color: #555865;
+
+  font-size: 8px;
+
+  letter-spacing: 1px;
+}
+
+.message-bubble {
+  padding: 13px 17px;
+
+  border-radius: 15px;
+
+  color: #c9cad2;
+
+  background: rgba(255,255,255,0.045);
+
+  border: 1px solid rgba(255,255,255,0.06);
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+.message-row.you .message-bubble {
+  background: rgba(139,92,246,0.14);
+
+  border-color: rgba(139,92,246,0.18);
+
+  border-bottom-right-radius: 4px;
+}
+
+.message-row.them .message-bubble {
+  border-bottom-left-radius: 4px;
+}
+
+.typing-indicator {
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  color: #50525e;
+
+  font-size: 9px;
+
+  margin-top: 10px;
+}
+
+.typing-indicator span {
+  width: 4px;
+  height: 4px;
+
+  border-radius: 50%;
+
+  background: #686b78;
+}
+
+
+/* =========================
+   INPUT
+========================= */
+
+.message-input-area {
+  display: flex;
+
+  gap: 10px;
+
+  padding: 10px;
+
+  border-radius: 13px;
+
+  background: rgba(255,255,255,0.035);
+
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.message-input-area textarea {
+  flex: 1;
+
+  resize: none;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #e5e5ea;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  padding: 10px;
+}
+
+.message-input-area textarea::placeholder {
+  color: #555865;
+}
+
+.send-message-button {
+  width: 42px;
+  height: 42px;
+
+  align-self: flex-end;
+
+  border: none;
+
+  border-radius: 10px;
+
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #6366f1
+  );
+
+  color: white;
+
+  font-size: 20px;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.send-message-button:hover {
+  transform: translateY(-2px);
+}
+
+.conversation-disclaimer {
+  margin-top: 10px;
+
+  text-align: center;
+
+  color: #484a55;
+
+  font-size: 9px;
+}
+
+.conversation-disclaimer span {
+  color: #8b5cf6;
+
+  margin-right: 5px;
+}
+
+
+/* =========================
+   PRIVATE MIRROR
+========================= */
+
+.private-mirror {
+  padding: 35px 25px;
+
+  background: rgba(12,14,22,0.85);
+
+  overflow-y: auto;
+}
+
+.mirror-heading {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 25px;
+}
+
+.mirror-heading h2 {
+  margin-top: 5px;
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 22px;
+}
+
+.privacy-icon {
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 9px;
+
+  background: rgba(139,92,246,0.08);
+
+  font-size: 14px;
+}
+
+
+/* MAIN EMOTION */
+
+.emotion-main-card {
+  padding: 20px;
+
+  border-radius: 16px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(139,92,246,0.12),
+      transparent 55%
+    ),
+    rgba(255,255,255,0.035);
+
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+.emotion-card-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  color: #626572;
+
+  font-size: 8px;
+
+  letter-spacing: 1.3px;
+}
+
+.emotion-card-header span:last-child {
+  color: #a78bfa;
+}
+
+.emotion-main {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  margin-top: 18px;
+}
+
+.emotion-icon {
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 12px;
+
+  background: rgba(255,255,255,0.05);
+
+  font-size: 20px;
+}
+
+.emotion-main h3 {
+  font-size: 16px;
+}
+
+.emotion-main p {
+  margin-top: 3px;
+
+  color: #6b6e7a;
+
+  font-size: 9px;
+
+  line-height: 1.4;
+}
+
+.emotion-main strong {
+  margin-left: auto;
+
+  color: #c4b5fd;
+
+  font-size: 16px;
+}
+
+.emotion-progress {
+  height: 4px;
+
+  margin-top: 18px;
+
+  border-radius: 20px;
+
+  background: rgba(255,255,255,0.06);
+
+  overflow: hidden;
+}
+
+.emotion-progress div {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: linear-gradient(
+    90deg,
+    #8b5cf6,
+    #67e8f9
+  );
+}
+
+
+/* EMOTION LIST */
+
+.emotion-list {
+  margin-top: 13px;
+
+  border-radius: 13px;
+
+  border: 1px solid rgba(255,255,255,0.06);
+
+  overflow: hidden;
+}
+
+.emotion-item {
+  padding: 13px 15px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  color: #888b97;
+
+  font-size: 11px;
+
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.emotion-item:last-child {
+  border-bottom: none;
+}
+
+.emotion-item div {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.emotion-item div span {
+  width: 24px;
+  height: 24px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 7px;
+
+  background: rgba(255,255,255,0.04);
+}
+
+.emotion-item strong {
+  color: #727582;
+
+  font-size: 10px;
+}
+
+
+/* TEMPERATURE */
+
+.temperature-card {
+  margin-top: 18px;
+
+  padding: 20px;
+
+  border-radius: 16px;
+
+  background: rgba(245,158,11,0.045);
+
+  border: 1px solid rgba(245,158,11,0.1);
+}
+
+.temperature-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  color: #686a76;
+
+  font-size: 8px;
+
+  letter-spacing: 1.2px;
+}
+
+.temperature-header span:last-child {
+  color: #a88950;
+}
+
+.temperature-main {
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  margin-top: 17px;
+}
+
+.temperature-icon {
+  width: 42px;
+  height: 42px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 11px;
+
+  background: rgba(245,158,11,0.08);
+}
+
+.temperature-main h3 {
+  font-size: 15px;
+
+  color: #d8b875;
+}
+
+.temperature-main p {
+  margin-top: 3px;
+
+  color: #666977;
+
+  font-size: 9px;
+}
+
+.temperature-main strong {
+  margin-left: auto;
+
+  color: #d8b875;
+
+  font-size: 16px;
+}
+
+.temperature-line {
+  height: 4px;
+
+  margin-top: 17px;
+
+  border-radius: 10px;
+
+  background: rgba(255,255,255,0.05);
+
+  overflow: hidden;
+}
+
+.temperature-line div {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: linear-gradient(
+    90deg,
+    #f59e0b,
+    #ef4444
+  );
+}
+
+
+/* NOTE */
+
+.mirror-note {
+  display: flex;
+
+  gap: 9px;
+
+  margin-top: 18px;
+
+  padding: 13px;
+
+  border-radius: 11px;
+
+  background: rgba(255,255,255,0.025);
+
+  color: #565965;
+
+  font-size: 9px;
+
+  line-height: 1.5;
+}
+
+.mirror-note span {
+  color: #8b5cf6;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1000px) {
+
+  .live-room-main {
+    grid-template-columns: 1fr;
+  }
+
+  .conversation-section {
+    min-height: 650px;
+
+    border-right: none;
+
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .private-mirror {
+    max-width: 650px;
+
+    width: 100%;
+
+    margin: auto;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .live-room-header {
+    padding: 0 4%;
+  }
+
+  .room-status {
+    margin-left: 15px;
+  }
+
+  .room-code-small {
+    display: none;
+  }
+
+  .live-room-main {
+    display: block;
+  }
+
+  .conversation-section {
+    padding: 30px 5% 25px;
+  }
+
+  .private-mirror {
+    padding: 30px 5%;
+  }
+
+  .message-row {
+    max-width: 85%;
+  }
+
+}

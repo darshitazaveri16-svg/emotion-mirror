@@ -4,6 +4,10 @@ import Landing from "./pages/landing/landing";
 import ChooseMode from "./pages/ChooseMode/ChooseMode";
 import LiveSetup from "./pages/live/LiveSetup";
 import LiveInvite from "./pages/live/LiveInvite";
+import LiveRoom from "./pages/live/LiveRoom";
+import JoinRoom from "./pages/live/JoinRoom";
+import WaitingRoom from "./pages/live/WaitingRoom";
+import BothJoined from "./pages/live/BothJoined";
 
 function App() {
   return (
@@ -12,8 +16,10 @@ function App() {
       <Route path="/choose-mode" element={<ChooseMode />} />
       <Route path="/live/setup"  element={<LiveSetup />} />
       <Route path="/live/invite" element={<LiveInvite />} />
-      
-
+      <Route path="/live/room" element={<LiveRoom />} />
+      <Route path="/live/join" element={<JoinRoom />} />
+      <Route path="/live/waiting" element={<WaitingRoom />} />
+      <Route path="/live/both-joined" element={<BothJoined />} />
       <Route
         path="/private/setup"
         element={
