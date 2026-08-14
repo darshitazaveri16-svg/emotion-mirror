@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 
 const analyzeRoute = require('./routes/analyze');
+const conversationsRoute = require('./routes/conversations');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/analyze', analyzeRoute);
+app.use('/api/conversations', conversationsRoute);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
