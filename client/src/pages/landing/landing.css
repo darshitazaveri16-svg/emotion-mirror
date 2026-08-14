@@ -1,0 +1,439 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+:root {
+  --ink: #0f1115;
+  --surface: #171922;
+  --surface-2: #1d202b;
+  --line: rgba(255, 255, 255, 0.08);
+  --paper: #f1f0ed;
+  --muted: #9ca0b0;
+  --cool: #6c8cff;
+  --warm: #ff7a59;
+  --gradient: linear-gradient(90deg, var(--cool), var(--warm));
+}
+
+.landing-page {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+}
+
+/* Force every text element to use our palette, not inherited/global defaults */
+.landing-page h1,
+.landing-page h2,
+.landing-page h3,
+.landing-page p,
+.landing-page span,
+.landing-page button {
+  color: var(--paper);
+}
+
+/* ---------- HERO ---------- */
+.hero {
+  position: relative;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 110px 24px 70px;
+  text-align: center;
+}
+
+/* soft glow behind the hero for depth, per your polish request */
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 560px;
+  height: 320px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(108, 140, 255, 0.16) 0%,
+    rgba(255, 122, 89, 0.08) 45%,
+    transparent 75%
+  );
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 28px;
+}
+
+.eyebrow.center {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 16px;
+}
+
+/* Reserve real space for the reflection instead of overlapping in place */
+.headline-block {
+  position: relative;
+  margin-bottom: 22px;
+  padding-bottom: 56px; /* space reserved for the reflection below */
+}
+
+.headline {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 46px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.headline.reflection {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  transform: scaleY(-1);
+  transform-origin: top;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.16), transparent 65%);
+  mask-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.16), transparent 65%);
+  color: var(--paper);
+  user-select: none;
+  pointer-events: none;
+}
+
+.hero-subtitle {
+  font-size: 17px;
+  margin-bottom: 6px;
+}
+
+.hero-description {
+  font-size: 14px;
+  color: var(--muted) !important;
+  max-width: 440px;
+  margin: 0 auto 34px;
+}
+
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 56px;
+  flex-wrap: wrap;
+}
+
+.primary-btn {
+  background: var(--paper);
+  color: var(--ink) !important;
+  border: none;
+  padding: 13px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(255, 122, 89, 0.22);
+}
+
+.primary-btn:active {
+  transform: translateY(0);
+}
+
+.primary-btn:focus-visible {
+  outline: 2px solid var(--cool);
+  outline-offset: 2px;
+}
+
+.secondary-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 13px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.secondary-btn:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-2px);
+}
+
+.secondary-btn:focus-visible {
+  outline: 2px solid var(--cool);
+  outline-offset: 2px;
+}
+
+/* Preview card */
+.preview-card {
+  max-width: 320px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: left;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+.preview-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.preview-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warm);
+  box-shadow: 0 0 8px rgba(255, 122, 89, 0.6);
+}
+
+.preview-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.preview-message {
+  font-family: "Fraunces", serif;
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+
+.preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tag {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.preview-temp {
+  display: flex;
+  justify-content: space-between;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  color: var(--muted) !important;
+  margin-bottom: 8px;
+}
+
+.temp-value {
+  color: var(--paper) !important;
+  font-weight: 500;
+}
+
+.temp-bar {
+  background: var(--surface-2);
+  height: 5px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.temp-bar-fill {
+  height: 100%;
+  background: var(--gradient);
+  border-radius: 4px;
+}
+
+/* ---------- MODES ---------- */
+.modes-section {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 70px 24px;
+  text-align: center;
+}
+
+.modes-section h2 {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 30px;
+  margin: 0 0 44px;
+  color: var(--paper) !important;
+}
+
+.modes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  margin-bottom: 44px;
+}
+
+.mode-card {
+  position: relative;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 26px 22px;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mode-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.mode-live::before {
+  background: var(--cool);
+}
+
+.mode-private::before {
+  background: var(--gradient);
+}
+
+.mode-solo::before {
+  background: var(--warm);
+}
+
+.mode-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
+}
+
+.mode-tag {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--muted) !important;
+  display: block;
+  margin-bottom: 14px;
+}
+
+.mode-icon {
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.mode-card h3 {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 19px;
+  margin: 0 0 8px;
+}
+
+.mode-card p {
+  font-size: 14px;
+  color: var(--muted) !important;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.best-for {
+  font-size: 12px;
+  color: var(--paper) !important;
+  opacity: 0.6;
+}
+
+.center-btn {
+  margin: 0 auto;
+}
+
+/* ---------- PHILOSOPHY ---------- */
+.philosophy-section {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 70px 24px 90px;
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+
+.philosophy-quote {
+  font-family: "Fraunces", serif;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.philosophy-note {
+  color: var(--muted) !important;
+  font-size: 14px;
+}
+
+/* ---------- FOOTER ---------- */
+.landing-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 26px 24px 50px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  color: var(--muted) !important;
+}
+
+.footer-muted {
+  opacity: 0.7;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 640px) {
+  .hero {
+    padding: 70px 20px 50px;
+  }
+
+  .headline {
+    font-size: 30px;
+  }
+
+  .headline-block {
+    padding-bottom: 40px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modes-section h2 {
+    font-size: 22px;
+  }
+
+  .landing-footer {
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-card,
+  .primary-btn,
+  .secondary-btn {
+    transition: none;
+  }
+}
