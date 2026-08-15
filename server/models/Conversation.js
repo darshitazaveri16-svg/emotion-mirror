@@ -127,9 +127,8 @@ const conversationSchema = new mongoose.Schema({
 });
 
 
-conversationSchema.pre('save', function (next) {
+conversationSchema.pre('save', function () {
   this.updatedAt = new Date();
-  next();
 });
 
 
