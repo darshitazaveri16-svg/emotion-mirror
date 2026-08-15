@@ -18,7 +18,7 @@ export default function Navbar() {
 
       <button
         className="nav-button"
-        onClick={() => navigate("/choose-mode")}
+        onClick={() => navigate("/welcome")}
       >
         Get Started
       </button>

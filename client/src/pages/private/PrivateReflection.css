@@ -1,0 +1,147 @@
+.reflection-page {
+  min-height: 100vh;
+
+  background: #080a12;
+
+  color: white;
+
+  font-family: "DM Sans", sans-serif;
+
+  padding: 60px 20px;
+}
+
+.reflection-content {
+  width: min(850px, 100%);
+
+  margin: auto;
+
+  text-align: center;
+}
+
+.reflection-label {
+  color: #8b7ca8;
+
+  font-size: 8px;
+
+  letter-spacing: 1.8px;
+}
+
+.reflection-content h1 {
+  margin-top: 15px;
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(40px, 6vw, 58px);
+
+  line-height: 1.04;
+
+  letter-spacing: -2.5px;
+}
+
+.reflection-content h1 span {
+  color: #a78bfa;
+}
+
+.reflection-content > p {
+  max-width: 550px;
+
+  margin: 18px auto 35px;
+
+  color: #777985;
+
+  font-size: 11px;
+
+  line-height: 1.7;
+}
+
+.reflection-grid {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 12px;
+
+  text-align: left;
+}
+
+.reflection-card {
+  padding: 22px;
+
+  border: 1px solid rgba(255,255,255,0.07);
+
+  border-radius: 17px;
+
+  background: rgba(255,255,255,0.025);
+}
+
+.reflection-card small {
+  color: #626570;
+
+  font-size: 7px;
+
+  letter-spacing: 1.3px;
+}
+
+.reflection-card h3 {
+  margin-top: 10px;
+
+  color: #c4b5fd;
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 18px;
+}
+
+.reflection-card h3.cooling {
+  color: #6ee7b7;
+}
+
+.reflection-card p {
+  margin-top: 8px;
+
+  color: #777985;
+
+  font-size: 9px;
+
+  line-height: 1.6;
+}
+
+.reflection-privacy {
+  margin-top: 17px;
+
+  color: #555963;
+
+  font-size: 8px;
+}
+
+.reflection-content > button {
+  width: 100%;
+
+  height: 52px;
+
+  margin-top: 20px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #6366f1
+  );
+
+  color: white;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+@media(max-width:600px) {
+
+  .reflection-grid {
+    grid-template-columns: 1fr;
+  }
+
+}

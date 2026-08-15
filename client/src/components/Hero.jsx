@@ -30,7 +30,7 @@ export default function Hero() {
         <div className="hero-buttons">
           <button
             className="primary-button"
-            onClick={() => navigate("/choose-mode")}
+            onClick={() => navigate("/welcome")}
           >
             Start Understanding
             <span>→</span>

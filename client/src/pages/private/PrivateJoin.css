@@ -1,0 +1,104 @@
+.partner-join-page {
+  min-height: 100vh;
+  background: #080a12;
+  color: white;
+  font-family: "DM Sans", sans-serif;
+  display: grid;
+  place-items: center;
+  padding: 30px;
+}
+
+.partner-join-content {
+  width: min(520px, 100%);
+  text-align: center;
+}
+
+.join-icon {
+  width: 58px;
+  height: 58px;
+  margin: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 17px;
+  background: rgba(103,232,249,0.08);
+  border: 1px solid rgba(103,232,249,0.18);
+  font-size: 22px;
+}
+
+.join-label {
+  margin-top: 17px;
+  color: #71808b;
+  font-size: 8px;
+  letter-spacing: 1.7px;
+}
+
+.partner-join-content h1 {
+  margin-top: 17px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(40px, 6vw, 58px);
+  line-height: 1.04;
+  letter-spacing: -2.5px;
+}
+
+.partner-join-content h1 span {
+  color: #67e8f9;
+}
+
+.partner-join-content > p {
+  max-width: 420px;
+  margin: 18px auto 30px;
+  color: #777985;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.partner-join-content form {
+  padding: 25px;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.025);
+  text-align: left;
+}
+
+.partner-join-content label {
+  display: block;
+  color: #686b76;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.partner-join-content input {
+  width: 100%;
+  height: 54px;
+  box-sizing: border-box;
+  padding: 0 15px;
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px;
+  outline: none;
+  background: rgba(255,255,255,0.035);
+  color: white;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+}
+
+.partner-join-content input:focus {
+  border-color: rgba(103,232,249,0.45);
+}
+
+.partner-join-content form button {
+  width: 100%;
+  height: 50px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #06b6d4, #6366f1);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.partner-join-content form button span {
+  margin-left: 8px;
+}

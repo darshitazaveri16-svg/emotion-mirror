@@ -1,0 +1,136 @@
+.private-waiting-page {
+  min-height: 100vh;
+  background: #080a12;
+  color: white;
+  font-family: "DM Sans", sans-serif;
+  display: grid;
+  place-items: center;
+  padding: 30px;
+}
+
+.private-waiting-content {
+  width: min(560px, 100%);
+  text-align: center;
+}
+
+.waiting-animation {
+  width: 64px;
+  height: 64px;
+  margin: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(139,92,246,0.08);
+  border: 1px solid rgba(139,92,246,0.2);
+  font-size: 23px;
+  box-shadow: 0 0 40px rgba(139,92,246,0.08);
+}
+
+.waiting-label {
+  margin-top: 17px;
+  color: #777087;
+  font-size: 8px;
+  letter-spacing: 1.7px;
+}
+
+.private-waiting-content h1 {
+  margin-top: 17px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(40px, 6vw, 58px);
+  line-height: 1.04;
+  letter-spacing: -2.5px;
+}
+
+.private-waiting-content h1 span {
+  color: #a78bfa;
+}
+
+.private-waiting-content > p {
+  margin: 18px auto 30px;
+  max-width: 430px;
+  color: #777985;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.waiting-card {
+  padding: 10px 20px;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.025);
+  text-align: left;
+}
+
+.waiting-person {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 16px 0;
+}
+
+.person-avatar {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(139,92,246,0.13);
+  color: #c4b5fd;
+  font-weight: 700;
+}
+
+.person-avatar.muted {
+  background: rgba(255,255,255,0.04);
+  color: #555762;
+}
+
+.waiting-person div:nth-child(2) {
+  flex: 1;
+}
+
+.waiting-person strong {
+  display: block;
+  color: #c3c4cc;
+  font-size: 11px;
+}
+
+.waiting-person small {
+  display: block;
+  margin-top: 4px;
+  color: #626570;
+  font-size: 8px;
+}
+
+.waiting-person > span:last-child {
+  color: #6ee7b7;
+}
+
+.waiting-line {
+  height: 1px;
+  background: rgba(255,255,255,0.05);
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8b5cf6;
+  box-shadow: 0 0 12px #8b5cf6;
+}
+
+.demo-join-button {
+  margin-top: 20px;
+  border: 1px solid rgba(139,92,246,0.25);
+  background: rgba(139,92,246,0.06);
+  color: #a78bfa;
+  padding: 11px 18px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.demo-note {
+  margin-top: 10px !important;
+  color: #454852 !important;
+  font-size: 8px !important;
+}

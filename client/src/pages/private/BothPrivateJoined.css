@@ -1,0 +1,165 @@
+.both-joined-page {
+  min-height: 100vh;
+  background: #080a12;
+  color: white;
+  font-family: "DM Sans", sans-serif;
+  display: grid;
+  place-items: center;
+  padding: 30px;
+}
+
+.both-joined-content {
+  width: min(590px, 100%);
+  text-align: center;
+}
+
+.joined-icon {
+  width: 60px;
+  height: 60px;
+  margin: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(52,211,153,0.1);
+  border: 1px solid rgba(52,211,153,0.25);
+  color: #6ee7b7;
+  font-size: 25px;
+}
+
+.joined-label {
+  margin-top: 18px;
+  color: #71806f;
+  font-size: 8px;
+  letter-spacing: 1.7px;
+}
+
+.both-joined-content h1 {
+  margin-top: 17px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(42px, 6vw, 61px);
+  line-height: 1.04;
+  letter-spacing: -2.8px;
+}
+
+.both-joined-content h1 span {
+  color: #6ee7b7;
+}
+
+.both-joined-content > p {
+  max-width: 450px;
+  margin: 18px auto 30px;
+  color: #777985;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.joined-people {
+  padding: 12px 20px;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.025);
+}
+
+.joined-person {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 15px 0;
+  text-align: left;
+}
+
+.joined-avatar {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(139,92,246,0.12);
+  color: #c4b5fd;
+  font-weight: 700;
+}
+
+.joined-avatar.partner {
+  background: rgba(103,232,249,0.1);
+  color: #67e8f9;
+}
+
+.joined-person div:nth-child(2) {
+  flex: 1;
+}
+
+.joined-person strong {
+  display: block;
+  color: #c3c4cc;
+  font-size: 11px;
+}
+
+.joined-person small {
+  display: block;
+  margin-top: 4px;
+  color: #626570;
+  font-size: 8px;
+}
+
+.joined-person > span {
+  color: #6ee7b7;
+}
+
+.joined-connector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #51545f;
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+.joined-connector span:first-child,
+.joined-connector span:last-child {
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.05);
+}
+
+.privacy-reminder {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 17px;
+  padding: 15px;
+  text-align: left;
+  border: 1px solid rgba(103,232,249,0.08);
+  border-radius: 12px;
+  background: rgba(103,232,249,0.025);
+}
+
+.privacy-reminder > span {
+  font-size: 18px;
+}
+
+.privacy-reminder strong {
+  color: #9ca0aa;
+  font-size: 10px;
+}
+
+.privacy-reminder p {
+  margin-top: 4px;
+  color: #5f626d;
+  font-size: 8px;
+}
+
+.start-private-conversation {
+  width: 100%;
+  height: 52px;
+  margin-top: 18px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10b981, #6366f1);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.start-private-conversation span {
+  margin-left: 8px;
+}
