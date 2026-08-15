@@ -276,7 +276,16 @@
   transition: 0.3s;
 }
 
-.create-live-button span {
+.create-live-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.live-setup-error {
+  margin-bottom: 14px;
+  color: #fca5a5;
+  font-size: 13px;
+}
   margin-left: 9px;
 }
 

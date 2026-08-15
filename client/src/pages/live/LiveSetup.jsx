@@ -1,44 +1,78 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { roomsApi } from "../../services/api";
+import {
+  getSessionUserId,
+  LANGUAGES,
+  persistSessionRoom,
+  setGuestName,
+} from "../../utils/session";
 import "./LiveSetup.css";
 
 export default function LiveSetup() {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
-  const [conversationType, setConversationType] = useState("Relationship");
+  const [language, setLanguage] = useState("en");
+  const [conversationType, setConversationType] =
+    useState("Relationship");
   const [focus, setFocus] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!name.trim()) {
       alert("Please enter your name.");
       return;
     }
 
-    // Temporary frontend-only room data.
-    // Later this will come from your friend's backend.
-    const roomCode =
-      "EM-" + Math.floor(1000 + Math.random() * 9000);
+    setLoading(true);
+    setError("");
+    setGuestName(name.trim());
 
-    navigate("/live/invite", {
-      state: {
-        name,
+    try {
+      const data = await roomsApi.create({
+        mode: "live",
+        language,
+        hostName: name.trim(),
+        guestUserId: getSessionUserId(),
         conversationType,
         focus,
-        roomCode,
-      },
-    });
+      });
+
+      persistSessionRoom({
+        roomId: data.roomId,
+        conversationId: data.conversationId,
+        language: data.language,
+        mode: "live",
+      });
+
+      navigate("/live/invite", {
+        state: {
+          name: name.trim(),
+          conversationType,
+          focus,
+          roomCode: data.roomId,
+          conversationId: data.conversationId,
+          language: data.language,
+        },
+      });
+    } catch (createError) {
+      setError(
+        createError.message ||
+          "Unable to create room. Is the backend running?"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="live-setup-page">
-
       <div className="live-setup-glow live-glow-one"></div>
       <div className="live-setup-glow live-glow-two"></div>
 
-      {/* Header */}
       <header className="live-setup-header">
-
         <button
           className="live-back-button"
           onClick={() => navigate("/choose-mode")}
@@ -57,14 +91,10 @@ export default function LiveSetup() {
         <div className="live-step">
           LIVE <span>•</span> 01
         </div>
-
       </header>
 
-      {/* Main */}
       <main className="live-setup-content">
-
         <div className="live-intro">
-
           <div className="live-badge">
             <span></span>
             LIVE CONVERSATION
@@ -77,18 +107,14 @@ export default function LiveSetup() {
           </h1>
 
           <p>
-            Set up your conversation before inviting the other person.
-            Emotion Mirror will stay neutral and help make possible
-            emotional signals visible.
+            Set up your conversation before inviting the other
+            person. Emotion Mirror will stay neutral and help
+            make possible emotional signals visible.
           </p>
-
         </div>
 
         <div className="live-setup-layout">
-
-          {/* Form */}
           <section className="live-form-card">
-
             <div className="form-heading">
               <span>01</span>
               <div>
@@ -97,27 +123,43 @@ export default function LiveSetup() {
               </div>
             </div>
 
-            {/* Name */}
             <div className="form-group">
-
-              <label htmlFor="name">
-                YOUR NAME
-              </label>
+              <label htmlFor="name">YOUR NAME</label>
 
               <input
                 id="name"
                 type="text"
                 placeholder="How should we call you?"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(event) =>
+                  setName(event.target.value)
+                }
                 maxLength={40}
               />
-
             </div>
 
-            {/* Conversation type */}
             <div className="form-group">
+              <label htmlFor="language">LANGUAGE</label>
 
+              <select
+                id="language"
+                value={language}
+                onChange={(event) =>
+                  setLanguage(event.target.value)
+                }
+              >
+                {LANGUAGES.map((item) => (
+                  <option
+                    key={item.code}
+                    value={item.code}
+                  >
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
               <label htmlFor="conversationType">
                 CONVERSATION TYPE
               </label>
@@ -125,8 +167,8 @@ export default function LiveSetup() {
               <select
                 id="conversationType"
                 value={conversationType}
-                onChange={(e) =>
-                  setConversationType(e.target.value)
+                onChange={(event) =>
+                  setConversationType(event.target.value)
                 }
               >
                 <option>Relationship</option>
@@ -135,12 +177,9 @@ export default function LiveSetup() {
                 <option>Workplace</option>
                 <option>Other</option>
               </select>
-
             </div>
 
-            {/* Focus */}
             <div className="form-group">
-
               <label htmlFor="focus">
                 WHAT WOULD YOU LIKE TO UNDERSTAND?
                 <span className="optional">OPTIONAL</span>
@@ -150,7 +189,9 @@ export default function LiveSetup() {
                 id="focus"
                 placeholder="For example: I want to understand why the conversation became tense."
                 value={focus}
-                onChange={(e) => setFocus(e.target.value)}
+                onChange={(event) =>
+                  setFocus(event.target.value)
+                }
                 maxLength={250}
                 rows={4}
               />
@@ -158,40 +199,40 @@ export default function LiveSetup() {
               <div className="character-count">
                 {focus.length}/250
               </div>
-
             </div>
+
+            {error && (
+              <p className="live-setup-error">{error}</p>
+            )}
 
             <button
               className="create-live-button"
               onClick={handleCreate}
+              disabled={loading}
             >
-              Create Conversation
-              <span>→</span>
+              {loading
+                ? "Creating room..."
+                : "Create Conversation"}
+              {!loading && <span>→</span>}
             </button>
 
             <div className="form-security">
               <span>🔒</span>
               Your perspective remains private.
             </div>
-
           </section>
 
-          {/* Preview */}
           <aside className="live-preview">
-
             <div className="preview-label">
               YOUR LIVE EXPERIENCE
             </div>
 
             <div className="preview-card">
-
               <div className="preview-top">
-
                 <div>
                   <span className="preview-small">
                     EMOTION MIRROR
                   </span>
-
                   <h3>Live Mirror</h3>
                 </div>
 
@@ -199,19 +240,17 @@ export default function LiveSetup() {
                   <i></i>
                   LIVE
                 </span>
-
               </div>
 
               <div className="preview-message">
                 <span>YOU</span>
                 <p>
-                  "I just wish you understood
-                  where I'm coming from."
+                  "I just wish you understood where I'm
+                  coming from."
                 </p>
               </div>
 
               <div className="preview-analysis">
-
                 <div className="analysis-title">
                   <span>Possible signals</span>
                   <span>PRIVATE</span>
@@ -220,57 +259,36 @@ export default function LiveSetup() {
                 <div className="signal">
                   <div>
                     <span>😔</span>
-                    Hurt
+                    Possible hurt
                   </div>
-                  <strong>76%</strong>
+                  <strong>—</strong>
                 </div>
 
                 <div className="signal-bar">
-                  <div style={{ width: "76%" }}></div>
+                  <div style={{ width: "60%" }}></div>
                 </div>
-
-                <div className="signal">
-                  <div>
-                    <span>🛡️</span>
-                    Defensive
-                  </div>
-                  <strong>51%</strong>
-                </div>
-
-                <div className="signal-bar">
-                  <div style={{ width: "51%" }}></div>
-                </div>
-
               </div>
 
               <div className="preview-temperature">
-
                 <div>
                   <small>CONVERSATION TEMPERATURE</small>
-                  <strong>Rising ↑</strong>
+                  <strong>Live tracking</strong>
                 </div>
-
-                <span>68%</span>
-
+                <span>—</span>
               </div>
 
               <div className="preview-disclaimer">
                 AI interpretation — not a fact
               </div>
-
             </div>
 
             <div className="preview-note">
               <span>✦</span>
               The mirror doesn't take sides.
             </div>
-
           </aside>
-
         </div>
-
       </main>
-
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { authApi } from "../../services/api";
+import { persistAuth } from "../../utils/session";
 import "./Welcome.css";
-
-const API_BASE_URL = "https://emotion-mirror-backend.onrender.com";
 
 export default function Welcome() {
   const navigate = useNavigate();
@@ -44,31 +44,12 @@ export default function Welcome() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: loginEmail,
-            password: loginPassword,
-          }),
-        }
+      const data = await authApi.login(
+        loginEmail,
+        loginPassword
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error || data.message || "Login failed"
-        );
-      }
-
-      // Save authentication information
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      persistAuth(data);
 
       // Continue to choose mode
       navigate("/choose-mode", {
@@ -96,32 +77,13 @@ export default function Welcome() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/auth/signup`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: signupName,
-            email: signupEmail,
-            password: signupPassword,
-          }),
-        }
+      const data = await authApi.signup(
+        signupName,
+        signupEmail,
+        signupPassword
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error || data.message || "Account creation failed"
-        );
-      }
-
-      // Save authentication information
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      persistAuth(data);
 
       // Continue to choose mode
       navigate("/choose-mode", {

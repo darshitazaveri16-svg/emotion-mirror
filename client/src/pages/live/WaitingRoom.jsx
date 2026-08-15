@@ -1,5 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import socket, { connectSocket } from "../../services/socket";
+import {
+  getSessionUserId,
+  persistSessionRoom,
+} from "../../utils/session";
 import "./WaitingRoom.css";
 
 export default function WaitingRoom() {
@@ -7,24 +12,93 @@ export default function WaitingRoom() {
   const location = useLocation();
 
   const name = location.state?.name || "You";
-  const roomCode = location.state?.roomCode || "EM-4827";
+  const roomCode =
+    location.state?.roomCode ||
+    localStorage.getItem("roomId") ||
+    "";
+  const conversationId =
+    location.state?.conversationId ||
+    localStorage.getItem("conversationId") ||
+    "";
+  const language =
+    location.state?.language ||
+    localStorage.getItem("language") ||
+    "en";
 
-  // FRONTEND DEMO ONLY
-  // Later your backend will tell us when the partner joins.
+  const [partnerJoined, setPartnerJoined] = useState(false);
+  const [error, setError] = useState("");
+
   useEffect(() => {
-    // Nothing here yet.
-  }, []);
+    if (!roomCode) {
+      navigate("/live/join");
+      return undefined;
+    }
+
+    persistSessionRoom({
+      roomId: roomCode,
+      conversationId,
+      language,
+      mode: "live",
+    });
+
+    const handleConnect = () => {
+      socket.emit("join-room", {
+        roomId: roomCode,
+        userId: getSessionUserId(),
+        userName: name,
+      });
+    };
+
+    const handleUserJoined = () => {
+      setPartnerJoined(true);
+    };
+
+    const handleBothJoined = () => {
+      navigate("/live/both-joined", {
+        state: {
+          name,
+          roomCode,
+          conversationId,
+          language,
+        },
+      });
+    };
+
+    const handleRoomError = (data) => {
+      setError(data?.error || "Unable to connect to the room.");
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("user-joined", handleUserJoined);
+    socket.on("both-joined", handleBothJoined);
+    socket.on("room-error", handleRoomError);
+
+    connectSocket();
+
+    if (socket.connected) {
+      handleConnect();
+    }
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("user-joined", handleUserJoined);
+      socket.off("both-joined", handleBothJoined);
+      socket.off("room-error", handleRoomError);
+    };
+  }, [
+    roomCode,
+    name,
+    conversationId,
+    language,
+    navigate,
+  ]);
 
   return (
     <div className="waiting-room-page">
-
       <div className="waiting-glow waiting-glow-one"></div>
       <div className="waiting-glow waiting-glow-two"></div>
 
-      {/* HEADER */}
-
       <header className="waiting-header">
-
         <button
           className="waiting-back"
           onClick={() => navigate("/live/join")}
@@ -43,14 +117,9 @@ export default function WaitingRoom() {
         <div className="waiting-room-code">
           ROOM <strong>{roomCode}</strong>
         </div>
-
       </header>
 
-
-      {/* MAIN */}
-
       <main className="waiting-content">
-
         <div className="waiting-badge">
           <span></span>
           ROOM CONNECTED
@@ -67,84 +136,65 @@ export default function WaitingRoom() {
           you'll both be able to start the conversation.
         </p>
 
-
-        {/* PEOPLE CARD */}
-
         <section className="people-card">
-
           <div className="person-block">
+            <div className="person-avatar you-avatar">👤</div>
 
-            <div className="person-avatar you-avatar">
-              👤
-            </div>
-
-            <div className="person-name">
-              {name}
-            </div>
+            <div className="person-name">{name}</div>
 
             <div className="person-status connected">
               <span></span>
               YOU'RE CONNECTED
             </div>
-
           </div>
-
 
           <div className="connection-line">
-
             <div className="connection-dot"></div>
-
             <div className="connection-dashes"></div>
-
-            <div className="connection-dot waiting-dot"></div>
-
+            <div
+              className={`connection-dot ${
+                partnerJoined ? "" : "waiting-dot"
+              }`}
+            ></div>
           </div>
 
-
           <div className="person-block">
-
             <div className="person-avatar partner-avatar">
               👤
             </div>
 
-            <div className="person-name">
-              Your partner
-            </div>
+            <div className="person-name">Your partner</div>
 
-            <div className="person-status waiting">
+            <div
+              className={`person-status ${
+                partnerJoined ? "connected" : "waiting"
+              }`}
+            >
               <span></span>
-              WAITING
+              {partnerJoined ? "CONNECTED" : "WAITING"}
             </div>
-
           </div>
-
         </section>
 
-
-        {/* STATUS */}
-
         <div className="waiting-status-card">
-
           <div className="status-spinner"></div>
 
           <div>
-            <h3>Waiting for your partner</h3>
+            <h3>
+              {partnerJoined
+                ? "Partner connected"
+                : "Waiting for your partner"}
+            </h3>
 
             <p>
-              Keep this page open. We'll let you know
-              as soon as they join.
+              Keep this page open. We'll move you forward as
+              soon as both people are connected.
             </p>
           </div>
-
         </div>
 
-
-        {/* ROOM CODE */}
-
         <div className="waiting-code">
-
           <span>ROOM CODE</span>
-
           <strong>{roomCode}</strong>
 
           <button
@@ -154,26 +204,15 @@ export default function WaitingRoom() {
           >
             Copy
           </button>
-
         </div>
 
-
-        {/* DEMO BUTTON */}
-
-        <button
-          className="demo-connected-button"
-          onClick={() => navigate("/live/room")}
-        >
-          Simulate Partner Joining →
-        </button>
-
+        {error && <p className="waiting-error">{error}</p>}
 
         <div className="waiting-privacy">
-          🔒 Your personal emotional mirror will remain private.
+          🔒 Your personal emotional mirror will remain
+          private.
         </div>
-
       </main>
-
     </div>
   );
 }

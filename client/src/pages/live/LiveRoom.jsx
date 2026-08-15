@@ -1,59 +1,119 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import useRoomSocket from "../../hooks/useRoomSocket";
+import useSpeechRecognition, {
+  getSpeechLanguage,
+} from "../../hooks/useSpeechRecognition";
+import {
+  getSessionUserName,
+  persistSessionRoom,
+} from "../../utils/session";
 import "./LiveRoom.css";
 
 export default function LiveRoom() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [message, setMessage] = useState("");
+  const [roomId, setRoomId] = useState("");
+  const [language, setLanguage] = useState("en");
 
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "them",
-      text: "I didn't mean it that way...",
-    },
-    {
-      id: 2,
-      sender: "you",
-      text: "But it felt like you did.",
-    },
-    {
-      id: 3,
-      sender: "them",
-      text: "I honestly wasn't trying to hurt you.",
-    },
-  ]);
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
 
-  const sendMessage = () => {
-    if (!message.trim()) return;
+    const storedRoomId =
+      localStorage.getItem("roomId") ||
+      params.get("roomId") ||
+      location.state?.roomId ||
+      location.state?.roomCode;
 
-    setMessages([
-      ...messages,
-      {
-        id: Date.now(),
-        sender: "you",
-        text: message,
-      },
-    ]);
+    const storedConversationId =
+      localStorage.getItem("conversationId") ||
+      params.get("conversationId") ||
+      location.state?.conversationId;
 
-    setMessage("");
+    const storedLanguage =
+      localStorage.getItem("language") ||
+      location.state?.language ||
+      "en";
+
+    if (!storedRoomId) {
+      navigate("/live/setup");
+      return;
+    }
+
+    setRoomId(storedRoomId);
+    setLanguage(storedLanguage);
+
+    persistSessionRoom({
+      roomId: storedRoomId,
+      conversationId: storedConversationId,
+      language: storedLanguage,
+      mode: "live",
+    });
+  }, [location, navigate]);
+
+  const {
+    messages,
+    connectedUsers,
+    typing,
+    mirror,
+    roomError,
+    sendMessage,
+    leaveRoom,
+  } = useRoomSocket({
+    roomId,
+    conversationId:
+      localStorage.getItem("conversationId") ||
+      location.state?.conversationId,
+    userName:
+      location.state?.name || getSessionUserName(),
+  });
+
+  const handleSpeechResult = (transcript) => {
+    setMessage((current) =>
+      current ? `${current} ${transcript}` : transcript
+    );
+  };
+
+  const { listening, supported, startListening } =
+    useSpeechRecognition({
+      language: getSpeechLanguage(language),
+      onResult: handleSpeechResult,
+    });
+
+  const submitMessage = () => {
+    const sent = sendMessage(message, language);
+
+    if (sent) {
+      setMessage("");
+    }
   };
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      sendMessage();
+      submitMessage();
     }
   };
 
+  const handleLeave = () => {
+    leaveRoom();
+    navigate("/choose-mode");
+  };
+
+  const intensityPercentage = Math.round(
+    Math.max(0, Math.min(1, mirror.intensity)) * 100
+  );
+
+  const temperaturePercentage = Math.max(
+    0,
+    Math.min(100, mirror.temperature)
+  );
+
   return (
     <div className="live-room-page">
-
-      {/* HEADER */}
-
       <header className="live-room-header">
-
         <div
           className="room-logo"
           onClick={() => navigate("/")}
@@ -68,84 +128,76 @@ export default function LiveRoom() {
         </div>
 
         <div className="room-code-small">
-          ROOM <strong>EM-4827</strong>
+          ROOM <strong>{roomId || "----"}</strong>
         </div>
 
         <button
           className="leave-room-button"
-          onClick={() => navigate("/choose-mode")}
+          onClick={handleLeave}
         >
           Leave
         </button>
-
       </header>
 
-
-      {/* MAIN */}
-
       <main className="live-room-main">
-
-        {/* CONVERSATION */}
-
         <section className="conversation-section">
-
           <div className="conversation-heading">
-
             <div>
               <span className="section-label">
                 SHARED SPACE
               </span>
-
               <h1>Conversation</h1>
             </div>
 
             <div className="connected-person">
               <span></span>
-              2 people connected
+              {connectedUsers}{" "}
+              {connectedUsers === 1 ? "person" : "people"}{" "}
+              connected
             </div>
-
           </div>
 
-
-          {/* MESSAGES */}
+          {roomError && (
+            <div className="live-room-error">{roomError}</div>
+          )}
 
           <div className="messages-container">
+            {messages.length === 0 && (
+              <div className="message-info">
+                Start the conversation...
+              </div>
+            )}
 
             {messages.map((item) => (
-
               <div
                 key={item.id}
                 className={`message-row ${item.sender}`}
               >
-
                 <div className="message-info">
                   {item.sender === "you"
                     ? "YOU"
+                    : item.sender === "ai"
+                    ? "AI"
                     : "THEM"}
                 </div>
 
                 <div className="message-bubble">
                   {item.text}
                 </div>
-
               </div>
-
             ))}
 
-            <div className="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
-              Them is typing...
-            </div>
-
+            {typing && (
+              <div className="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+                AI is thinking...
+              </div>
+            )}
           </div>
 
-
-          {/* INPUT */}
-
           <div className="message-input-area">
-
             <textarea
               value={message}
               onChange={(event) =>
@@ -156,169 +208,114 @@ export default function LiveRoom() {
               rows="1"
             />
 
+            {supported && (
+              <button
+                type="button"
+                className={`voice-button ${
+                  listening ? "listening" : ""
+                }`}
+                onClick={startListening}
+                title="Speak your message"
+              >
+                🎤
+              </button>
+            )}
+
             <button
               className="send-message-button"
-              onClick={sendMessage}
+              onClick={submitMessage}
+              disabled={typing}
             >
               →
             </button>
-
           </div>
 
           <div className="conversation-disclaimer">
             <span>✦</span>
-            Emotion Mirror is observing patterns, not judging either person.
+            Emotion Mirror is observing patterns, not judging
+            either person.
           </div>
-
         </section>
 
-
-        {/* PRIVATE MIRROR */}
-
         <aside className="private-mirror">
-
           <div className="mirror-heading">
-
             <div>
               <span className="section-label">
                 PRIVATE TO YOU
               </span>
-
               <h2>Their Mirror</h2>
             </div>
 
-            <div className="privacy-icon">
-              🔒
-            </div>
-
+            <div className="privacy-icon">🔒</div>
           </div>
 
-
-          {/* Emotional state */}
-
           <div className="emotion-main-card">
-
             <div className="emotion-card-header">
               <span>LIKELY EMOTIONAL SIGNAL</span>
               <span>AI</span>
             </div>
 
             <div className="emotion-main">
-
-              <div className="emotion-icon">
-                😔
-              </div>
+              <div className="emotion-icon">💭</div>
 
               <div>
-                <h3>Hurt</h3>
+                <h3>{mirror.emotion}</h3>
                 <p>
-                  They may be feeling affected
-                  by what was said.
+                  {mirror.reasoning ||
+                    "AI interpretation of possible emotional signals."}
                 </p>
               </div>
 
-              <strong>76%</strong>
-
+              <strong>{intensityPercentage}%</strong>
             </div>
 
             <div className="emotion-progress">
-              <div style={{ width: "76%" }}></div>
+              <div
+                style={{
+                  width: `${intensityPercentage}%`,
+                }}
+              ></div>
             </div>
-
           </div>
-
-
-          {/* Other emotions */}
-
-          <div className="emotion-list">
-
-            <div className="emotion-item">
-
-              <div>
-                <span>🛡️</span>
-                Defensive
-              </div>
-
-              <strong>51%</strong>
-
-            </div>
-
-            <div className="emotion-item">
-
-              <div>
-                <span>😟</span>
-                Anxious
-              </div>
-
-              <strong>34%</strong>
-
-            </div>
-
-            <div className="emotion-item">
-
-              <div>
-                <span>💭</span>
-                Uncertain
-              </div>
-
-              <strong>28%</strong>
-
-            </div>
-
-          </div>
-
-
-          {/* Temperature */}
 
           <div className="temperature-card">
-
             <div className="temperature-header">
               <span>CONVERSATION TEMPERATURE</span>
               <span>NOW</span>
             </div>
 
             <div className="temperature-main">
-
-              <div className="temperature-icon">
-                🔥
-              </div>
+              <div className="temperature-icon">🔥</div>
 
               <div>
-                <h3>Rising</h3>
+                <h3>{mirror.trend}</h3>
                 <p>
-                  Emotional intensity appears
-                  to be increasing.
+                  Current possible emotional intensity
+                  pattern.
                 </p>
               </div>
 
-              <strong>68%</strong>
-
+              <strong>{temperaturePercentage}%</strong>
             </div>
 
             <div className="temperature-line">
-              <div style={{ width: "68%" }}></div>
+              <div
+                style={{
+                  width: `${temperaturePercentage}%`,
+                }}
+              ></div>
             </div>
-
           </div>
-
-
-          {/* AI note */}
 
           <div className="mirror-note">
-
             <span>✦</span>
-
             <p>
-              These are possible interpretations,
-              not facts about what someone feels.
+              {mirror.note ||
+                "These are possible interpretations, not facts about what someone feels."}
             </p>
-
           </div>
-
         </aside>
-
       </main>
-
     </div>
   );
 }

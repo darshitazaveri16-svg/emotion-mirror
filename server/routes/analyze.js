@@ -3,13 +3,12 @@ const express = require('express');
 const router = express.Router();
 
 const Conversation = require('../models/Conversation');
-const { analyzeEmotion } = require('../services/emotionService');
+const {
+  analyzeEmotion,
+  generateAIReply,
+} = require('../services/emotionService');
 const authMiddleware = require('../middleware/authMiddleware');
 
-
-// =====================================================
-// ANALYZE MESSAGE
-// =====================================================
 
 router.post('/', authMiddleware, async (req, res) => {
   try {
@@ -18,10 +17,6 @@ router.post('/', authMiddleware, async (req, res) => {
       conversationId,
       language = 'en',
     } = req.body;
-
-    // -------------------------
-    // VALIDATION
-    // -------------------------
 
     if (!message || !message.trim()) {
       return res.status(400).json({
@@ -35,20 +30,20 @@ router.post('/', authMiddleware, async (req, res) => {
       });
     }
 
-
-    // -------------------------
-    // FIND OR CREATE CONVERSATION
-    // -------------------------
-
     let conversation;
 
     if (conversationId) {
-      conversation = await Conversation.findById(
-        conversationId
-      );
-    }
+      conversation = await Conversation.findOne({
+        _id: conversationId,
+        userId: req.user.userId,
+      });
 
-    if (!conversation) {
+      if (!conversation) {
+        return res.status(404).json({
+          error: 'Conversation not found',
+        });
+      }
+    } else {
       conversation = new Conversation({
         userId: req.user.userId,
         mode: 'solo',
@@ -58,95 +53,76 @@ router.post('/', authMiddleware, async (req, res) => {
       });
     }
 
-
-    // -------------------------
-    // GEMINI EMOTION ANALYSIS
-    // -------------------------
+    const context = conversation.messages
+      .slice(-10)
+      .map(
+        (entry) =>
+          `${entry.sender}: ${entry.text}`
+      )
+      .join('\n');
 
     const result = await analyzeEmotion(
-      message.trim()
+      message.trim(),
+      context
     );
 
-
-    // -------------------------
-    // SAVE USER MESSAGE
-    // -------------------------
+    const aiReply = await generateAIReply(
+      message.trim(),
+      language,
+      result.emotion,
+      context
+    );
 
     conversation.messages.push({
       sender: 'user',
-
       senderId: req.user.userId,
-
       text: message.trim(),
-
       emotion: result.emotion || null,
-
       intensity:
         typeof result.intensity === 'number'
           ? result.intensity
           : null,
-
       temperature:
         typeof result.temperature === 'number'
           ? result.temperature
           : null,
-
       trend: result.trend || null,
-
       language,
-
       reasoning: result.reasoning || null,
+      note: result.note || null,
     });
 
-
-    // -------------------------
-    // UPDATE CONVERSATION
-    // -------------------------
+    conversation.messages.push({
+      sender: 'ai',
+      text: aiReply,
+      language,
+      temperature: result.temperature || null,
+      trend: result.trend || null,
+    });
 
     conversation.language = language;
 
-    if (
-      typeof result.temperature === 'number'
-    ) {
-      conversation.temperature =
-        result.temperature;
+    if (typeof result.temperature === 'number') {
+      conversation.temperature = result.temperature;
     }
 
     await conversation.save();
 
-
-    // -------------------------
-    // RESPONSE
-    // -------------------------
-
     res.json({
       message: 'Message analyzed successfully',
-
       emotion: result.emotion,
-
       intensity: result.intensity,
-
       temperature: result.temperature,
-
       trend: result.trend,
-
       reasoning: result.reasoning,
-
       note: result.note,
-
-      conversationId:
-        conversation._id,
-
+      aiReply,
+      conversationId: conversation._id,
       language,
-
       saved: true,
     });
-
   } catch (error) {
-    console.error(
-      'Emotion analysis error:',
-      error
-    );
+    console.error('Emotion analysis error:', error);
 
     res.status(500).json({
       error:

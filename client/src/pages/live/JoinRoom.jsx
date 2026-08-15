@@ -1,5 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { roomsApi } from "../../services/api";
+import {
+  getSessionUserId,
+  persistSessionRoom,
+  setGuestName,
+} from "../../utils/session";
 import "./JoinRoom.css";
 
 export default function JoinRoom() {
@@ -7,8 +13,10 @@ export default function JoinRoom() {
 
   const [name, setName] = useState("");
   const [roomCode, setRoomCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (!name.trim()) {
       alert("Please enter your name.");
       return;
@@ -19,26 +27,48 @@ export default function JoinRoom() {
       return;
     }
 
-    // Temporary frontend navigation.
-    // Later this will call your friend's backend.
-    navigate("/live/waiting", {
-      state: {
-        name,
-        roomCode: roomCode.toUpperCase(),
-      },
-    });
+    setLoading(true);
+    setError("");
+
+    try {
+      const normalizedCode = roomCode.trim().toUpperCase();
+      const data = await roomsApi.get(normalizedCode);
+
+      setGuestName(name.trim());
+
+      persistSessionRoom({
+        roomId: data.roomId,
+        conversationId: data.conversationId,
+        language: data.language,
+        mode: data.mode,
+      });
+
+      localStorage.setItem("userId", getSessionUserId());
+
+      navigate("/live/waiting", {
+        state: {
+          name: name.trim(),
+          roomCode: data.roomId,
+          conversationId: data.conversationId,
+          language: data.language,
+        },
+      });
+    } catch (joinError) {
+      setError(
+        joinError.message ||
+          "Unable to join room. Check the code and try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="join-room-page">
-
       <div className="join-glow join-glow-one"></div>
       <div className="join-glow join-glow-two"></div>
 
-      {/* HEADER */}
-
       <header className="join-header">
-
         <button
           className="join-back"
           onClick={() => navigate("/choose-mode")}
@@ -57,14 +87,9 @@ export default function JoinRoom() {
         <div className="join-step">
           LIVE <span>•</span> JOIN
         </div>
-
       </header>
 
-
-      {/* MAIN */}
-
       <main className="join-content">
-
         <div className="join-badge">
           <span></span>
           JOIN A CONVERSATION
@@ -77,16 +102,12 @@ export default function JoinRoom() {
         </h1>
 
         <p className="join-description">
-          Enter the room details shared with you.
-          You'll join the same conversation while
-          keeping your personal emotional mirror private.
+          Enter the room details shared with you. You'll join
+          the same conversation while keeping your personal
+          emotional mirror private.
         </p>
 
-
-        {/* JOIN CARD */}
-
         <section className="join-card">
-
           <div className="join-card-heading">
             <span>01</span>
 
@@ -96,14 +117,8 @@ export default function JoinRoom() {
             </div>
           </div>
 
-
-          {/* NAME */}
-
           <div className="join-form-group">
-
-            <label htmlFor="join-name">
-              YOUR NAME
-            </label>
+            <label htmlFor="join-name">YOUR NAME</label>
 
             <input
               id="join-name"
@@ -115,61 +130,50 @@ export default function JoinRoom() {
               }
               maxLength={40}
             />
-
           </div>
 
-
-          {/* ROOM CODE */}
-
           <div className="join-form-group">
-
-            <label htmlFor="room-code">
-              ROOM CODE
-            </label>
+            <label htmlFor="room-code">ROOM CODE</label>
 
             <input
               id="room-code"
               type="text"
-              placeholder="Example: EM-4827"
+              placeholder="Example: EM-1234"
               value={roomCode}
               onChange={(event) =>
-                setRoomCode(event.target.value.toUpperCase())
+                setRoomCode(
+                  event.target.value.toUpperCase()
+                )
               }
               maxLength={10}
             />
 
             <p className="room-code-help">
-              Ask the person who invited you for the
-              room code if you don't have it.
+              Ask the person who invited you for the room code
+              if you don't have it.
             </p>
-
           </div>
 
+          {error && <p className="join-error">{error}</p>}
 
           <button
             className="join-room-button"
             onClick={handleJoin}
+            disabled={loading}
           >
-            Join Conversation
-            <span>→</span>
+            {loading ? "Joining..." : "Join Conversation"}
+            {!loading && <span>→</span>}
           </button>
-
 
           <div className="join-security">
             <span>🔒</span>
-            Your private emotional mirror is only visible to you.
+            Your private emotional mirror is only visible to
+            you.
           </div>
-
         </section>
 
-
-        {/* PRIVACY INFO */}
-
         <div className="join-info">
-
-          <div className="join-info-icon">
-            🪞
-          </div>
+          <div className="join-info-icon">🪞</div>
 
           <div>
             <h3>What happens when you join?</h3>
@@ -180,11 +184,8 @@ export default function JoinRoom() {
               Emotion Mirror doesn't take sides.
             </p>
           </div>
-
         </div>
-
       </main>
-
     </div>
   );
 }

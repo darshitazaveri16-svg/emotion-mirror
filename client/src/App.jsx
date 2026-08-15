@@ -21,8 +21,7 @@ import PrivateConversation from "./pages/private/PrivateConversation";
 import PrivateMirror from "./pages/private/PrivateMirror";
 import PrivateEnd from "./pages/private/PrivateEnd";
 import PrivateReflection from "./pages/private/PrivateReflection";
-
-
+import SoloReflection from "./pages/solo/SoloReflection";
 
 function App() {
   return (
@@ -30,13 +29,13 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/choose-mode" element={<ChooseMode />} />
       <Route path="/welcome" element={<Welcome />} />
-      <Route path="/live/setup"  element={<LiveSetup />} />
+      <Route path="/live/setup" element={<LiveSetup />} />
       <Route path="/live/invite" element={<LiveInvite />} />
       <Route path="/live/room" element={<LiveRoom />} />
       <Route path="/live/join" element={<JoinRoom />} />
       <Route path="/live/waiting" element={<WaitingRoom />} />
       <Route path="/live/both-joined" element={<BothJoined />} />
-     
+
       <Route path="/private/setup" element={<PrivateSetup />} />
       <Route path="/private/create-room" element={<CreatePrivateRoom />} />
       <Route path="/private/room-created" element={<PrivateRoomCreated />} />
@@ -46,19 +45,10 @@ function App() {
       <Route path="/private/both-joined" element={<BothPrivateJoined />} />
       <Route path="/private/conversation" element={<PrivateConversation />} />
       <Route path="/private/mirror" element={<PrivateMirror />} />
-      <Route path="/private/end"   element={<PrivateEnd />} />
+      <Route path="/private/end" element={<PrivateEnd />} />
       <Route path="/private/reflection" element={<PrivateReflection />} />
-      
-      
-      
-      <Route
-        path="/solo"
-        element={
-          <div className="test-page">
-            <h1>Solo Reflection</h1>
-          </div>
-        }
-      />
+
+      <Route path="/solo" element={<SoloReflection />} />
     </Routes>
   );
 }

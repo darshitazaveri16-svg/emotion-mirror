@@ -1,0 +1,117 @@
+.solo-reflection-page .solo-language-select {
+  margin-left: auto;
+}
+
+.solo-reflection-page .solo-language-select select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #f5f5f7;
+  font-size: 12px;
+}
+
+.solo-error-banner {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  font-size: 13px;
+}
+
+.solo-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.solo-finish-button,
+.solo-primary-button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    rgba(167, 139, 250, 0.25),
+    rgba(34, 211, 238, 0.18)
+  );
+  color: #f5f5f7;
+  font-size: 13px;
+  transition: 0.25s ease;
+}
+
+.solo-finish-button:hover:not(:disabled),
+.solo-primary-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(167, 139, 250, 0.18);
+}
+
+.solo-finish-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.voice-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #f5f5f7;
+}
+
+.voice-button.listening {
+  border-color: rgba(34, 211, 238, 0.45);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.25);
+}
+
+.solo-final-reflection {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.solo-final-reflection h1 {
+  margin: 12px 0 10px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 34px;
+}
+
+.reflection-note {
+  color: #9295a2;
+  margin-bottom: 28px;
+}
+
+.reflection-cards {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.reflection-card-item {
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.reflection-card-item small {
+  display: block;
+  margin-bottom: 8px;
+  color: #67e8f9;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+}
+
+.reflection-card-item p {
+  color: #e5e7eb;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .solo-reflection-page .live-room-main {
+    grid-template-columns: 1fr;
+  }
+}

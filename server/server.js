@@ -3,22 +3,24 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
-const crypto = require('crypto');
-
+const mongoose = require('mongoose');
 const { Server } = require('socket.io');
 
 const connectDB = require('./config/db');
 
 const Conversation = require('./models/Conversation');
+const Room = require('./models/Room');
 
 const analyzeRoute = require('./routes/analyze');
 const conversationsRoute = require('./routes/conversations');
 const authRoute = require('./routes/auth');
+const roomsRoute = require('./routes/rooms');
 
 const {
   analyzeEmotion,
   generateAIReply,
 } = require('./services/emotionService');
+const { generateUniqueRoomId } = require('./utils/generateRoomId');
 
 const app = express();
 
@@ -26,27 +28,19 @@ const PORT = process.env.PORT || 5000;
 
 connectDB();
 
-
 app.use(
   cors({
     origin: '*',
-    methods: [
-      'GET',
-      'POST',
-      'PUT',
-      'PATCH',
-      'DELETE',
-    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   })
 );
 
 app.use(express.json());
 
-
 app.use('/api/auth', authRoute);
 app.use('/api/analyze', analyzeRoute);
 app.use('/api/conversations', conversationsRoute);
-
+app.use('/api/rooms', roomsRoute);
 
 app.get('/', (req, res) => {
   res.json({
@@ -54,9 +48,7 @@ app.get('/', (req, res) => {
   });
 });
 
-
 const server = http.createServer(app);
-
 
 const io = new Server(server, {
   cors: {
@@ -65,61 +57,125 @@ const io = new Server(server, {
   },
 });
 
+const roomParticipants = new Map();
+
+const getParticipantCount = (roomId) => {
+  const participants = roomParticipants.get(roomId);
+
+  if (!participants) {
+    return 0;
+  }
+
+  return participants.size;
+};
+
+const addParticipant = (roomId, socketId, userId) => {
+  if (!roomParticipants.has(roomId)) {
+    roomParticipants.set(roomId, new Map());
+  }
+
+  roomParticipants.get(roomId).set(socketId, {
+    userId: userId || null,
+    socketId,
+  });
+};
+
+const removeParticipant = (roomId, socketId) => {
+  const participants = roomParticipants.get(roomId);
+
+  if (!participants) {
+    return;
+  }
+
+  participants.delete(socketId);
+
+  if (participants.size === 0) {
+    roomParticipants.delete(roomId);
+  }
+};
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-
-  // ==========================================
-  // CREATE ROOM
-  // ==========================================
-
   socket.on(
     'create-room',
     async ({
-      userId,
       mode = 'live',
       language = 'en',
+      userId = null,
+      hostName = 'Host',
     }) => {
       try {
-        if (!userId) {
-          return socket.emit('room-error', {
-            error: 'User ID is required',
+        if (!['live', 'private'].includes(mode)) {
+          socket.emit('room-error', {
+            error: 'Mode must be live or private',
           });
+          return;
         }
 
-        const roomId =
-          crypto.randomBytes(4).toString('hex');
-
-        const conversation =
-          new Conversation({
-            userId,
-            roomId,
-            mode,
-            language,
-            status: 'waiting',
-            messages: [],
+        if (!['en', 'hi', 'gu'].includes(language)) {
+          socket.emit('room-error', {
+            error: 'Invalid language',
           });
+          return;
+        }
+
+        const resolvedUserId =
+          userId &&
+          mongoose.Types.ObjectId.isValid(userId)
+            ? userId
+            : new mongoose.Types.ObjectId();
+
+        const roomId = await generateUniqueRoomId();
+
+        const conversation = new Conversation({
+          userId: resolvedUserId,
+          roomId,
+          mode,
+          language,
+          status: 'waiting',
+          messages: [],
+          metadata: {
+            hostName: hostName || 'Host',
+          },
+        });
 
         await conversation.save();
 
-        socket.join(roomId);
-
-        socket.roomId = roomId;
-        socket.userId = userId;
+        await Room.create({
+          roomId,
+          roomType: mode,
+          host: {
+            userId:
+              userId &&
+              mongoose.Types.ObjectId.isValid(userId)
+                ? userId
+                : null,
+            name: hostName || 'Host',
+          },
+          participants: [
+            {
+              userId:
+                userId &&
+                mongoose.Types.ObjectId.isValid(userId)
+                  ? userId
+                  : null,
+              name: hostName || 'Host',
+            },
+          ],
+          status: 'waiting',
+          conversationId: conversation._id,
+        });
 
         socket.emit('room-created', {
           roomId,
           conversationId: conversation._id,
           mode,
           language,
+          status: conversation.status,
         });
-
       } catch (error) {
-        console.error(
-          'Create room error:',
-          error
-        );
+        console.error('Socket create-room error:', error);
 
         socket.emit('room-error', {
           error: 'Failed to create room',
@@ -128,61 +184,87 @@ io.on('connection', (socket) => {
     }
   );
 
-
-  // ==========================================
-  // JOIN ROOM
-  // ==========================================
-
   socket.on(
     'join-room',
-    async ({ roomId, userId }) => {
+    async ({ roomId, userId, userName = 'Guest' }) => {
       try {
         if (!roomId) {
-          return socket.emit('room-error', {
+          socket.emit('room-error', {
             error: 'Room ID is required',
           });
+          return;
         }
 
-        const conversation =
-          await Conversation.findOne({
-            roomId,
-          });
+        const normalizedRoomId = roomId.toUpperCase();
+
+        const conversation = await Conversation.findOne({
+          roomId: normalizedRoomId,
+        });
 
         if (!conversation) {
-          return socket.emit('room-error', {
+          socket.emit('room-error', {
             error: 'Room not found',
           });
+          return;
         }
 
-        socket.join(roomId);
+        socket.join(normalizedRoomId);
 
-        socket.roomId = roomId;
+        socket.roomId = normalizedRoomId;
         socket.userId = userId || null;
+        socket.userName = userName || 'Guest';
 
-        conversation.status = 'active';
+        addParticipant(
+          normalizedRoomId,
+          socket.id,
+          userId || null
+        );
 
-        await conversation.save();
+        const participantCount =
+          getParticipantCount(normalizedRoomId);
+
+        if (participantCount >= 2) {
+          conversation.status = 'active';
+          await conversation.save();
+
+          await Room.findOneAndUpdate(
+            { roomId: normalizedRoomId },
+            {
+              status: 'active',
+              startedAt: new Date(),
+            }
+          );
+        }
 
         socket.emit('room-joined', {
-          roomId,
+          roomId: normalizedRoomId,
           conversationId: conversation._id,
           mode: conversation.mode,
           language: conversation.language,
           status: conversation.status,
+          participantCount,
         });
 
-        socket
-          .to(roomId)
-          .emit('user-joined', {
-            userId: userId || null,
-            roomId,
-          });
+        socket.to(normalizedRoomId).emit('user-joined', {
+          userId: userId || null,
+          userName: userName || 'Guest',
+          roomId: normalizedRoomId,
+          participantCount,
+        });
 
-      } catch (error) {
-        console.error(
-          'Join room error:',
-          error
+        if (participantCount >= 2) {
+          io.to(normalizedRoomId).emit('both-joined', {
+            roomId: normalizedRoomId,
+            conversationId: conversation._id,
+            participantCount,
+          });
+        }
+
+        console.log(
+          `User ${userId || 'unknown'} joined room ${normalizedRoomId}`
         );
+      } catch (error) {
+        console.error('Socket join-room error:', error);
 
         socket.emit('room-error', {
           error: 'Failed to join room',
@@ -190,11 +272,6 @@ io.on('connection', (socket) => {
       }
     }
   );
-
-
-  // ==========================================
-  // SEND MESSAGE
-  // ==========================================
 
   socket.on(
     'send-message',
@@ -206,57 +283,97 @@ io.on('connection', (socket) => {
       language = 'en',
     }) => {
       try {
-        if (!roomId || !text?.trim()) {
-          return socket.emit('room-error', {
-            error:
-              'Room ID and message are required',
+        if (!roomId || !text || !text.trim()) {
+          socket.emit('room-error', {
+            error: 'Room ID and message are required',
           });
-        }
-
-        if (
-          !['en', 'hi', 'gu'].includes(language)
-        ) {
-          return socket.emit('room-error', {
-            error: 'Invalid language',
-          });
+          return;
         }
 
         const conversation =
-          await Conversation.findById(
-            conversationId
-          );
+          await Conversation.findById(conversationId);
 
         if (!conversation) {
-          return socket.emit('room-error', {
+          socket.emit('room-error', {
             error: 'Conversation not found',
           });
+          return;
         }
 
+        if (!['en', 'hi', 'gu'].includes(language)) {
+          socket.emit('room-error', {
+            error: 'Invalid language',
+          });
+          return;
+        }
 
-        // Previous context
-        const context =
-          conversation.messages
-            .slice(-10)
-            .map(
-              (m) =>
-                `${m.sender}: ${m.text}`
-            )
-            .join('\n');
+        const context = conversation.messages
+          .slice(-10)
+          .map(
+            (message) =>
+              `${message.sender}: ${message.text}`
+          )
+          .join('\n');
 
+        const result = await analyzeEmotion(
+          text.trim(),
+          context
+        );
 
-        // AI EMOTION ANALYSIS
-        const result =
-          await analyzeEmotion(
-            text.trim(),
-            context
-          );
+        const aiReply = await generateAIReply(
+          text.trim(),
+          language,
+          result.emotion,
+          context
+        );
 
-
-        // SAVE USER MESSAGE
         conversation.messages.push({
+          sender: 'user',
+          senderId:
+            userId &&
+            mongoose.Types.ObjectId.isValid(userId)
+              ? userId
+              : null,
+          text: text.trim(),
+          emotion: result.emotion,
+          intensity: result.intensity,
+          temperature: result.temperature,
+          trend: result.trend,
+          language,
+          reasoning: result.reasoning,
+          note: result.note,
+        });
+
+        conversation.messages.push({
+          sender: 'ai',
+          text: aiReply,
+          emotion: null,
+          intensity: null,
+          temperature: result.temperature,
+          trend: result.trend,
+          language,
+          reasoning: null,
+        });
+
+        conversation.temperature = result.temperature;
+        conversation.language = language;
+
+        if (conversation.status === 'waiting') {
+          conversation.status = 'active';
+        }
+
+        await conversation.save();
+
+        io.to(roomId).emit('new-message', {
           sender: 'user',
           senderId: userId || null,
           text: text.trim(),
+          language,
+          conversationId: conversation._id,
+        });
+
+        socket.to(roomId).emit('private-mirror', {
+          aboutUserId: userId || null,
           emotion: result.emotion,
           intensity: result.intensity,
           temperature: result.temperature,
@@ -264,48 +381,14 @@ io.on('connection', (socket) => {
           reasoning: result.reasoning,
           note: result.note,
           language,
+          conversationId: conversation._id,
         });
 
-
-        conversation.temperature =
-          result.temperature;
-
-        conversation.language =
-          language;
-
-
-        // AI REPLY
-        const aiReply =
-          await generateAIReply(
-            text.trim(),
-            language,
-            result.emotion,
-            context
-          );
-
-
-        // SAVE AI MESSAGE
-        conversation.messages.push({
-          sender: 'ai',
-          senderId: null,
-          text: aiReply,
-          language,
-        });
-
-
-        await conversation.save();
-
-
-        // ======================================
-        // PUBLIC/LIVE MESSAGE
-        // ======================================
-
-        io.to(roomId).emit(
-          'new-message',
-          {
-            sender: 'user',
-            senderId: userId || null,
-            text: text.trim(),
+        if (
+          conversation.mode === 'live' ||
+          conversation.mode === 'private'
+        ) {
+          socket.emit('emotion-update', {
             emotion: result.emotion,
             intensity: result.intensity,
             temperature: result.temperature,
@@ -313,83 +396,62 @@ io.on('connection', (socket) => {
             reasoning: result.reasoning,
             note: result.note,
             language,
-            conversationId:
-              conversation._id,
-          }
-        );
+          });
+        }
 
-
-        // ======================================
-        // AI MESSAGE
-        // ======================================
-
-        io.to(roomId).emit(
-          'ai-message',
-          {
-            sender: 'ai',
-            text: aiReply,
-            language,
-            conversationId:
-              conversation._id,
-          }
-        );
-
+        io.to(roomId).emit('ai-message', {
+          sender: 'ai',
+          text: aiReply,
+          language,
+          conversationId: conversation._id,
+        });
       } catch (error) {
-        console.error(
-          'Socket send-message error:',
-          error
-        );
+        console.error('Socket send-message error:', error);
 
         socket.emit('room-error', {
-          error:
-            'Failed to send message',
+          error: 'Failed to send message',
         });
       }
     }
   );
 
+  socket.on('leave-room', () => {
+    const roomId = socket.roomId;
 
-  // ==========================================
-  // LEAVE ROOM
-  // ==========================================
-
-  socket.on(
-    'leave-room',
-    async () => {
-      const roomId = socket.roomId;
-
-      if (!roomId) return;
-
+    if (roomId) {
+      removeParticipant(roomId, socket.id);
       socket.leave(roomId);
 
-      socket
-        .to(roomId)
-        .emit('user-left', {
-          userId:
-            socket.userId || null,
-          roomId,
-        });
+      const participantCount = getParticipantCount(roomId);
+
+      socket.to(roomId).emit('user-left', {
+        userId: socket.userId || null,
+        roomId,
+        participantCount,
+      });
 
       socket.roomId = null;
     }
-  );
+  });
 
+  socket.on('disconnect', () => {
+    const roomId = socket.roomId;
 
-  // ==========================================
-  // DISCONNECT
-  // ==========================================
+    if (roomId) {
+      removeParticipant(roomId, socket.id);
 
-  socket.on(
-    'disconnect',
-    () => {
-      console.log(
-        'User disconnected:',
-        socket.id
-      );
+      const participantCount = getParticipantCount(roomId);
+
+      socket.to(roomId).emit('user-left', {
+        userId: socket.userId || null,
+        roomId,
+        participantCount,
+      });
     }
-  );
-});
 
+    console.log('User disconnected:', socket.id);
+  });
+});
 
 server.listen(PORT, () => {
   console.log(

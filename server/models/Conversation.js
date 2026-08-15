@@ -109,6 +109,12 @@ const conversationSchema = new mongoose.Schema({
     note: String,
   },
 
+  metadata: {
+    conversationType: String,
+    focus: String,
+    hostName: String,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
