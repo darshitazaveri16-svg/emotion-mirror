@@ -1,13 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const Conversation = require('../models/Conversation');
 
-// Create a new conversation
-router.post('/', async (req, res) => {
+const Conversation = require('../models/Conversation');
+const authMiddleware = require('../middleware/authMiddleware');
+
+// =========================
+// CREATE A NEW CONVERSATION
+// =========================
+
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const { mode, temperature } = req.body;
 
     const conversation = new Conversation({
+      userId: req.user.userId,
       mode: mode || 'solo',
       temperature: temperature ?? 30,
       messages: []
@@ -19,6 +25,7 @@ router.post('/', async (req, res) => {
       message: 'Conversation created successfully',
       conversation
     });
+
   } catch (error) {
     console.error('Create conversation error:', error);
 
@@ -28,10 +35,17 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get a conversation by ID
-router.get('/:id', async (req, res) => {
+
+// =========================
+// GET A CONVERSATION BY ID
+// =========================
+
+router.get('/:id', authMiddleware, async (req, res) => {
   try {
-    const conversation = await Conversation.findById(req.params.id);
+    const conversation = await Conversation.findOne({
+      _id: req.params.id,
+      userId: req.user.userId
+    });
 
     if (!conversation) {
       return res.status(404).json({
@@ -40,6 +54,7 @@ router.get('/:id', async (req, res) => {
     }
 
     res.json(conversation);
+
   } catch (error) {
     console.error('Get conversation error:', error);
 
@@ -49,12 +64,17 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Delete a conversation
-router.delete('/:id', async (req, res) => {
+
+// =========================
+// DELETE A CONVERSATION
+// =========================
+
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    const conversation = await Conversation.findByIdAndDelete(
-      req.params.id
-    );
+    const conversation = await Conversation.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.userId
+    });
 
     if (!conversation) {
       return res.status(404).json({
@@ -65,6 +85,7 @@ router.delete('/:id', async (req, res) => {
     res.json({
       message: 'Conversation deleted successfully'
     });
+
   } catch (error) {
     console.error('Delete conversation error:', error);
 
@@ -73,5 +94,6 @@ router.delete('/:id', async (req, res) => {
     });
   }
 });
+
 
 module.exports = router;

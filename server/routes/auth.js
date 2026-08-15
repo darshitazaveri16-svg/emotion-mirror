@@ -5,7 +5,10 @@ const User = require('../models/User');
 
 const router = express.Router();
 
+// =========================
 // SIGN UP
+// =========================
+
 router.post('/signup', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -59,6 +62,7 @@ router.post('/signup', async (req, res) => {
         email: user.email
       }
     });
+
   } catch (error) {
     console.error('Signup error:', error);
 
@@ -68,8 +72,10 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-
+// =========================
 // LOGIN
+// =========================
+
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -118,6 +124,7 @@ router.post('/login', async (req, res) => {
         email: user.email
       }
     });
+
   } catch (error) {
     console.error('Login error:', error);
 
@@ -126,6 +133,5 @@ router.post('/login', async (req, res) => {
     });
   }
 });
-
 
 module.exports = router;
