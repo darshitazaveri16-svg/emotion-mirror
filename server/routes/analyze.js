@@ -1,72 +1,159 @@
 const express = require('express');
+
 const router = express.Router();
 
 const Conversation = require('../models/Conversation');
 const { analyzeEmotion } = require('../services/emotionService');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// =========================
-// ANALYZE EMOTION
-// =========================
+
+// =====================================================
+// ANALYZE MESSAGE
+// =====================================================
 
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { message, conversationId } = req.body;
+    const {
+      message,
+      conversationId,
+      language = 'en',
+    } = req.body;
 
-    if (!message) {
+    // -------------------------
+    // VALIDATION
+    // -------------------------
+
+    if (!message || !message.trim()) {
       return res.status(400).json({
-        error: 'message is required'
+        error: 'message is required',
       });
     }
 
-    // Analyze message using Gemini AI
-    const result = await analyzeEmotion(message);
+    if (!['en', 'hi', 'gu'].includes(language)) {
+      return res.status(400).json({
+        error: 'Invalid language. Use en, hi or gu',
+      });
+    }
+
+
+    // -------------------------
+    // FIND OR CREATE CONVERSATION
+    // -------------------------
 
     let conversation;
 
-    // If conversation ID is provided,
-    // make sure it belongs to the logged-in user
     if (conversationId) {
-      conversation = await Conversation.findOne({
-        _id: conversationId,
-        userId: req.user.userId
-      });
+      conversation = await Conversation.findById(
+        conversationId
+      );
     }
 
-    // Create a new conversation if one doesn't exist
     if (!conversation) {
       conversation = new Conversation({
         userId: req.user.userId,
         mode: 'solo',
-        messages: []
+        language,
+        status: 'active',
+        messages: [],
       });
     }
 
-    // Save user's message + emotion analysis
+
+    // -------------------------
+    // GEMINI EMOTION ANALYSIS
+    // -------------------------
+
+    const result = await analyzeEmotion(
+      message.trim()
+    );
+
+
+    // -------------------------
+    // SAVE USER MESSAGE
+    // -------------------------
+
     conversation.messages.push({
       sender: 'user',
-      text: message,
-      emotion: result.emotion,
-      intensity: result.intensity
+
+      senderId: req.user.userId,
+
+      text: message.trim(),
+
+      emotion: result.emotion || null,
+
+      intensity:
+        typeof result.intensity === 'number'
+          ? result.intensity
+          : null,
+
+      temperature:
+        typeof result.temperature === 'number'
+          ? result.temperature
+          : null,
+
+      trend: result.trend || null,
+
+      language,
+
+      reasoning: result.reasoning || null,
     });
 
-    // Update emotional temperature
-    conversation.temperature = result.temperature;
+
+    // -------------------------
+    // UPDATE CONVERSATION
+    // -------------------------
+
+    conversation.language = language;
+
+    if (
+      typeof result.temperature === 'number'
+    ) {
+      conversation.temperature =
+        result.temperature;
+    }
 
     await conversation.save();
 
+
+    // -------------------------
+    // RESPONSE
+    // -------------------------
+
     res.json({
-      ...result,
-      conversationId: conversation._id
+      message: 'Message analyzed successfully',
+
+      emotion: result.emotion,
+
+      intensity: result.intensity,
+
+      temperature: result.temperature,
+
+      trend: result.trend,
+
+      reasoning: result.reasoning,
+
+      note: result.note,
+
+      conversationId:
+        conversation._id,
+
+      language,
+
+      saved: true,
     });
 
   } catch (error) {
-    console.error('Emotion analysis error:', error);
+    console.error(
+      'Emotion analysis error:',
+      error
+    );
 
     res.status(500).json({
-      error: 'Something went wrong while analyzing the message'
+      error:
+        'Something went wrong while analyzing the message',
     });
   }
 });
+
 
 module.exports = router;

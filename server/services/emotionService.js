@@ -5,48 +5,152 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
   model: 'gemini-3.6-flash',
   generationConfig: {
-    responseMimeType: 'application/json'
-  }
+    responseMimeType: 'application/json',
+  },
 });
 
-const analyzeEmotion = async (message) => {
+const analyzeEmotion = async (message, context = '') => {
   const prompt = `
-You are the AI emotion analysis engine for an application called Emotion Mirror.
+You are the AI emotion analysis engine for Emotion Mirror.
 
-Your job is NOT to claim that you know someone's actual emotions.
-You must only identify possible emotional signals from the message.
+Analyze possible emotional signals only.
+Do NOT claim to know the person's actual emotion.
+Do NOT diagnose mental health conditions.
 
-Analyze this message:
+Previous conversation context:
+${context || 'No previous context.'}
 
+Current message:
 "${message}"
 
-Return ONLY valid JSON with exactly these fields:
+Return ONLY valid JSON:
 
 {
-  "emotion": "one primary possible emotion",
+  "emotion": "one possible primary emotional signal",
   "intensity": 0.0,
   "temperature": 0,
   "trend": "rising | falling | stable",
-  "reasoning": "short explanation of why this emotional signal may be present",
-  "note": "AI interpretation — not a fact"
+  "reasoning": "short explanation",
+  "note": "AI interpretation — not a fact",
+  "turningPoint": false
 }
 
 Rules:
-- emotion should describe a possible emotional signal such as hurt, anger, frustration, sadness, anxiety, defensiveness, disappointment, withdrawal, etc.
-- intensity must be a number between 0 and 1.
-- temperature must be a number between 0 and 100.
-- trend must be exactly one of: rising, falling, stable.
-- Do not diagnose mental health conditions.
-- Do not say that the person definitely feels something.
-- Use uncertainty-aware language such as "may", "might", or "could".
-- Keep reasoning short and understandable.
+- intensity must be between 0 and 1
+- temperature must be between 0 and 100
+- trend must be exactly rising, falling, or stable
+- turningPoint must be true only if this message appears to be an important emotional shift
+- use uncertainty-aware language
+- never diagnose
 `;
 
   const result = await model.generateContent(prompt);
-  const response = result.response;
-  const text = response.text();
+  const text = result.response.text();
 
   return JSON.parse(text);
 };
 
-module.exports = { analyzeEmotion };
+
+const generateAIReply = async (
+  message,
+  language = 'en',
+  emotion = 'neutral',
+  context = ''
+) => {
+  const languageName = {
+    en: 'English',
+    hi: 'Hindi',
+    gu: 'Gujarati',
+  }[language] || 'English';
+
+  const prompt = `
+You are Emotion Mirror, an empathetic AI reflection assistant.
+
+Reply to the user's message in ${languageName}.
+
+Possible emotional signal:
+${emotion}
+
+Previous context:
+${context || 'No previous context.'}
+
+User message:
+"${message}"
+
+Rules:
+- Be supportive and calm.
+- Do not diagnose.
+- Do not claim certainty about emotions.
+- Keep the response concise.
+- Encourage reflection rather than giving extreme advice.
+- Return ONLY JSON.
+
+Format:
+{
+  "reply": "your response"
+}
+`;
+
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
+
+  const parsed = JSON.parse(text);
+
+  return parsed.reply;
+};
+
+
+const generateFinalReflection = async (
+  messages = [],
+  language = 'en'
+) => {
+  const languageName = {
+    en: 'English',
+    hi: 'Hindi',
+    gu: 'Gujarati',
+  }[language] || 'English';
+
+  const conversationText = messages
+    .map(
+      (m) =>
+        `${m.sender}: ${m.text} | emotion=${m.emotion || 'unknown'}`
+    )
+    .join('\n');
+
+  const prompt = `
+You are Emotion Mirror.
+
+Create a short final reflection for this conversation.
+
+Language: ${languageName}
+
+Conversation:
+${conversationText}
+
+Return ONLY JSON:
+
+{
+  "summary": "short overall reflection",
+  "strongestSignal": "main possible emotional signal",
+  "trend": "rising | falling | stable",
+  "turningPoints": ["short turning point 1"],
+  "suggestion": "optional gentle communication suggestion",
+  "note": "AI interpretation — not a fact"
+}
+
+Do not diagnose.
+Use uncertainty-aware language.
+`;
+
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
+
+  return JSON.parse(text);
+};
+
+
+module.exports = {
+  analyzeEmotion,
+  generateAIReply,
+  generateFinalReflection,
+};
