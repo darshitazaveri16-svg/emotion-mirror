@@ -1,58 +1,133 @@
 const mongoose = require('mongoose');
 
-// Schema for individual messages
 const messageSchema = new mongoose.Schema({
   sender: {
     type: String,
-    required: true
+    required: true,
+    enum: ['user', 'ai'],
+  },
+
+  senderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,
   },
 
   text: {
     type: String,
-    required: true
+    required: true,
   },
 
   emotion: {
-    type: String
+    type: String,
+    default: null,
   },
 
   intensity: {
-    type: Number
+    type: Number,
+    default: null,
+  },
+
+  temperature: {
+    type: Number,
+    default: null,
+  },
+
+  trend: {
+    type: String,
+    enum: ['rising', 'falling', 'stable', null],
+    default: null,
+  },
+
+  reasoning: {
+    type: String,
+    default: null,
+  },
+
+  note: {
+    type: String,
+    default: null,
+  },
+
+  language: {
+    type: String,
+    enum: ['en', 'hi', 'gu'],
+    default: 'en',
   },
 
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-// Schema for a conversation
+
 const conversationSchema = new mongoose.Schema({
-  // User who owns this conversation
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+  },
+
+  roomId: {
+    type: String,
+    unique: true,
+    sparse: true,
   },
 
   mode: {
     type: String,
     enum: ['live', 'private', 'solo'],
-    default: 'solo'
+    default: 'solo',
+  },
+
+  language: {
+    type: String,
+    enum: ['en', 'hi', 'gu'],
+    default: 'en',
+  },
+
+  status: {
+    type: String,
+    enum: ['waiting', 'active', 'completed'],
+    default: 'waiting',
   },
 
   temperature: {
     type: Number,
-    default: 30
+    default: 30,
   },
 
   messages: [messageSchema],
 
+  reflection: {
+    summary: String,
+    strongestSignal: String,
+    trend: String,
+    turningPoints: [String],
+    suggestion: String,
+    note: String,
+  },
+
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
+
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-// Create and export Conversation model
-module.exports = mongoose.model('Conversation', conversationSchema);
+
+conversationSchema.pre('save', function (next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+
+module.exports = mongoose.model(
+  'Conversation',
+  conversationSchema
+);
