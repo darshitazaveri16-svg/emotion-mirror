@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 
 const analyzeRoute = require('./routes/analyze');
 const conversationsRoute = require('./routes/conversations');
+const authRoute = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,6 +14,7 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/auth', authRoute);
 
 app.get('/', (req, res) => {
   res.json({ status: 'Emotion Mirror backend is running' });
